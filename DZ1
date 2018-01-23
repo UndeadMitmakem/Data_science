@@ -1,0 +1,24 @@
+import math
+import cmath
+b=1e-20
+c=4.0
+def solve(b,c):
+    D=b**2-4*c
+    if D>=0:
+        sqD=math.sqrt(D)
+        if b>=0:
+            x1=(-b-sqD)/2.0
+            x2=c/x1
+        else:
+            x1=(-b+sqD)/2.0
+            x2=c/x1
+    else:
+        sqD=cmath.sqrt(D)
+        if b>=0:
+            x1=(-b-sqD)/2.0
+            x2=c/x1
+        else:
+            x1=(-b+sqD)/2.0
+            x2=c/x1
+    return (x1,x2)
+print(solve(b,c))
