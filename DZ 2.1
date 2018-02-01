@@ -1,11 +1,11 @@
 # Программа считает частное от суммы кубов чисел Фибоначчи (max = 4 млн) и суммы квадратов их же #
-a=[1,2] 
-while a[-1] <=4000000: 
-x = a[-1] + a[-2] 
-a.append(x) 
-b=[x for x in a if x % 2 == 0] 
-c=[x**3 for x in b] 
-d=[x**2 for x in b] 
-f1=sum(c) 
-f2=sum(d) 
+a=[1,2]
+while a[-1] <=4000000:
+  x = a[-1] + a[-2]
+  a.append(x)
+b=[x for x in a if x % 2 == 0]
+c=[x**3 for x in b]
+d=[x**2 for x in b]
+f1=sum(c)
+f2=sum(d)
 print(f1/f2)
