@@ -1,0 +1,15 @@
+# Программа переводит римские цифры в арабские #
+print("Введите число")
+a = input()
+CONV_DICT = {'M': 1000, 'D': 500, 'C': 100, 'L': 50, 'X':10, 'V':5, 'I':1}
+answer = 0
+numList = []
+for i in range(len(a)):
+       numList.append(CONV_DICT[a[i]])
+for i in range(len(numList)-1):
+    if numList[i] >= numList[i+1]:
+        answer += numList[i]
+    else:
+        answer -= numList[i]
+answer+=numList[-1]
+print(answer)
