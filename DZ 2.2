@@ -1,16 +1,24 @@
-# Программа переводит римские цифры в арабские #
+# Программа переводит римские числа в арабские #
 print("Введите число")
 a = input()
-CONV_DICT = {'M': 1000, 'D': 500, 'C': 100, 'L': 50, 'X':10, 'V':5, 'I':1}
-answer = 0
-numList = []
-for i in range(len(a)):
-       numList.append(CONV_DICT[a[i]])
-for i in range(len(numList)-1):
-    if numList[i] >= numList[i+1]:
-        answer += numList[i]
-    else:
-        answer -= numList[i]
-answer+=numList[-1]
-print(answer)
+def roman_to_arab(N):
+    CONV_DICT = {'M': 1000, 'D': 500, 'C': 100, 'L': 50, 'X':10, 'V':5, 'I':1}
+    answer = 0
+    numList = []
+    for i in range(len(N)):
+       numList.append(CONV_DICT[N[i]])
+    for i in range(len(numList)-1):
+        if numList[i] >= numList[i+1]:
+            answer += numList[i]
+        else:
+            answer -= numList[i]
+    answer+=numList[-1]
+    return (answer)
+print(roman_to_arab(a))
 #MMMCMXCIX - 3999, DCCCLXXXVIII - 888, DLXXXIII - 583, MCMLXXXIX - 1989, MDCLXVIII - 1668#
+#test cases
+roman_to_arab("MMMCMXCIX")
+roman_to_arab("DCCCLXXXVIII")
+roman_to_arab("DLXXXIII")
+roman_to_arab("MCMLXXXIX")
+roman_to_arab("MDCLXVIII")
