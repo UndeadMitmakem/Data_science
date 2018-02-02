@@ -1,0 +1,25 @@
+def arab_to_roman(N):
+        Nstring = '000' + str(N)
+        number = ''
+
+        ROMAN = [['', 'M', 'MM', 'MMM', '', '', '', '', '', ''],
+             ['', 'C', 'CC', 'CCC', 'CD', 'D', 'DC', 'DCC', 'DCCC', 'CM'],
+             ['', 'X', 'XX', 'XXX', 'XL', 'L', 'LX', 'LXX', 'LXXX', 'XC'],
+             ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX']]
+
+        for i in range(1,5):
+            number = number + ROMAN[i-1][int(Nstring[len(Nstring) - (5-i)])]
+        return(number)
+print("Введите число")
+a = input()
+b=int(a)
+if b >= 4000:
+    print ("Введите число меньше 4000")
+else:
+        print(arab_to_roman(b))
+#MMMCMXCIX - 3999, DCCCLXXXVIII - 888, DLXXXIII - 583, MCMLXXXIX - 1989, MDCLXVIII - 1668#
+arab_to_roman(3999)
+arab_to_roman(888)
+arab_to_roman(583)
+arab_to_roman(1989)
+arab_to_roman(1668)
