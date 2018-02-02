@@ -1,0 +1,17 @@
+def lagrange(xval, xk, yk):
+    """Lagrange interpolation polinomail.
+     xval is L(xval0, xk and yk are observations.
+    """
+    return sum(yk[k] * lagrange_k(xval, xk, k) for k in range(len(xk)))
+
+
+def lagrange_k(xval, xk, k):
+    c = 1.0
+    b = 1.0
+    for i in range(len(xk)):
+        if i == k:
+            continue
+        else:
+            c *= (xk[k]-xk[i])
+            b /= (xval-xk[i])
+    return(c*b)  
