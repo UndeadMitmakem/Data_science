@@ -13,7 +13,7 @@ def solve(b,c):
       else:
           x1=x2=0
   elif c == 0 and b != 0:
-    x1 = 0
+    x1 = x2 = 0
   elif c != 0 and b != 0:
       A=4.0*c/b**2
       if D >= 0:
