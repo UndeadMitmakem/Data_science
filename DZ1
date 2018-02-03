@@ -1,7 +1,7 @@
 import math
 import cmath
-b = -3.0
-c = 2.0
+b = 1e-20
+c = 3.0
 def solve(b,c):
   D=b*b-4*c
   if b == 0:
@@ -19,20 +19,13 @@ def solve(b,c):
       A=4.0*c/b**2
       if D >= 0:
         D = math.sqrt(b*b-4*c)
-        if A  < 10**-15:
-         x1 = -c/b
-         x2 = c/x1
-        else:
-         x1 = (-b+D)/2
-         x2 = c/x1
       else:
         D = cmath.sqrt(b*b-4*c)
-        if A  < 10**-15:
+      if A  < 10**-15:
          x1 = -c/b
          x2 = c/x1
-        else:
+      else:
          x1 = (-b+D)/2
          x2 = c/x1
   return(x1,x2)
 print (solve(b,c))
-
