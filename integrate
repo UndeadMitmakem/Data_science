@@ -1,0 +1,15 @@
+import numpy as np
+def integrate_function(func, a, b, N):
+  x = np.linspace(a, b, N)
+  y = [func(_) for _ in x]
+  for i in range (len(x)):
+    f = (x[i-1]+x[i])/2 
+    delta = abs(x[i+1]-x[i])
+    average_sum = sum(func(f)*delta)
+  return average_sum
+
+
+def f(x):
+  return x**2
+
+print(integrate_function(lambda x: x**2, -1, 1, 100))
