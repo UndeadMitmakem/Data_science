@@ -25,31 +25,34 @@ def determinant(A):
             return value
 
 #метод Гаусса
-#Выбираем максимум из первого столбца
+#Выбираем максимум из столбца
 def max (A):
-    tmp_max = A[0][0]
+    tmp_max = A[i][i]
     max_line = 0
     for i in range(len(A)):
-        if A[i][0] > tmp_max:
-            tmp_max = A[i][0]
+        for j in range (i+1, len(A)):
+            if A[i][j] > tmp_max:
+            tmp_max = A[i][j]
             max_line = i
     return max_line
 
 def gaussian_elimination(A,B):
-    if determinant(A) == 0:
+    if len(A) != len(A[0]):
+        print("Недостаточное количество уравнений/переменных")
+    elif determinant(A) == 0:
         print("Система несовместна")
 #Меняем строки местами
     else:
-        for i in range(len(A)):
-            tmp = A[max(A)]
-            if i  == max(A):
-                A[i] = A[0]
-                A[0] = tmp
-
-
-
-
-
-
-
-
+        for i in range (len(A)):
+            for j in range(i, len(A)+1):
+                tmp = A[max(A)][j]
+                A[max(A)][j] = A[i][j]
+                A[i][j] = tmp
+#Обнуляем члены
+            for k in range(i + 1, n):
+                c = -A[k][i] / A[i][i]
+                for j in range(i, n + 1):
+                    if i == j:
+                        A[k][j] = 0
+                    else:
+                        A[k][j] += c * A[i][j]
