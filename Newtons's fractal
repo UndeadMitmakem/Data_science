@@ -41,6 +41,6 @@ for re in range(imgx):
         
 #выбираем цвет по корню уравнения
             color = [i*color_depth for i in colors[min(distances)[1]]]
-            image.putpixel((re, im), tuple(color))
+image.putpixel((re, im), tuple(color))
 plt.imshow(image)
 plt.title("Newton's fractal")
