@@ -1,0 +1,13 @@
+import math
+def f(x):
+    k = 0.01
+    return abs(math.sin(x)) -  kx
+def (a, b, eps):
+    if f(a) == 0:
+        print(a, f(a))
+    elif f(b) == 0:
+        print(b, f(b))
+    elif f(a)*f(b)<0:
+        while abs(a - b) > eps
+            x = (a+b)/2
+            print (x, f(x))
