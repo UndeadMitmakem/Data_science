@@ -1,0 +1,58 @@
+def determinant_2(A):
+    det_value = A[0][0] * A[1][1] - A[0][1] * A[1][0]
+    return det_value
+
+def minor(n, m, A):
+    for i in range(len(A)):
+        for j in range(len(A[i])):
+            Minor_matrix = []
+            if i != n or j != m:
+                Minor_matrix.append(A[i][j])
+    return Minor_matrix
+
+def determinant(A):
+    if len(A) != len(A[0]):
+        print ("Введите квадратную матрицу")
+    elif len(A) == 1 and  len(A[0]) == 1:
+        print (A[0][0])
+    elif len(A) == 2 and  len(A[0]) == 2:
+        return determinant_2(A)
+    else:
+        for i in range(len(A)):
+            degree = (-1) ** (i + 1)
+            value=0
+            value += degree * A[0][i] * determinant(minor(0, i, A))
+            return value
+
+#метод Гаусса
+#Выбираем максимум из столбца
+def max (A):
+    tmp_max = A[i][i]
+    max_line = 0
+    for i in range(len(A)):
+        for j in range (i+1, len(A)):
+            if A[i][j] > tmp_max:
+            tmp_max = A[i][j]
+            max_line = i
+    return max_line
+
+def gaussian_elimination(A,B):
+    if len(A) != len(A[0]):
+        print("Недостаточное количество уравнений/переменных")
+    elif determinant(A) == 0:
+        print("Система несовместна")
+#Меняем строки местами
+    else:
+        for i in range (len(A)):
+            for j in range(i, len(A)+1):
+                tmp = A[max(A)][j]
+                A[max(A)][j] = A[i][j]
+                A[i][j] = tmp
+#Обнуляем члены
+            for k in range(i + 1, n):
+                c = -A[k][i] / A[i][i]
+                for j in range(i, n + 1):
+                    if i == j:
+                        A[k][j] = 0
+                    else:
+                        A[k][j] += c * A[i][j]
