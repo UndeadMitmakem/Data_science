@@ -9,18 +9,18 @@ imgy = 800
 image = Image.new("RGB", (imgx, imgy))
 
 # Complex window
-xa = -1.0
-xb = 1.0
-ya = -1.0
-yb = 1.0
+xa = -2.0
+xb = 2.0
+ya = -2.0
+yb = 2.0
 
 # root finding method
-delta       = 0.000001  # convergence criteria 
-iters       = 30        # number of iterations
+delta       = 1E-6  # convergence criteria 
+iters       = 15        # number of iterations
 
 # these are the solutions to the equation z**3-1 = 0
-solutions = [cos((2*n+1)*pi/3)+1j*sin((2*n+1)*pi/3) for n in range(4)]
-colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0)]
+solutions = [cos((2*n+1)*pi/3)+1j*sin((2*n+1)*pi/3) for n in range(3)]
+colors = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
 
 for re in range(imgx):
     for im in range(imgy):
@@ -43,6 +43,7 @@ for re in range(imgx):
         
         # select the color associated with the solution
         color = [i*color_depth for i in colors[min(distances)[1]]]
-        image.putpixel((re, im), tuple(color))
+        r, g, b = i % 4 * 64, i % 8 * 32, i % 16 * 16 # red, green, blue
+        image.putpixel((re, im), (r,g,b))
 plt.imshow(image)
-plt.title("Newton Fractal!")
+plt.title("Newton's fractal")
