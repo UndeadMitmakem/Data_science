@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+%matplotlib inline
+
 from cmath import *
 from PIL import Image
 
