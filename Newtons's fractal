@@ -1,11 +1,8 @@
-import matplotlib.pyplot as plt
-%matplotlib inline
-
 from cmath import *
 from PIL import Image
 
-imgx = 1000
-imgy = 1000
+imgx = 800
+imgy = 800
 image = Image.new("RGB", (imgx, imgy))
 
 # Задаем значения на комплексной плоскости
@@ -15,11 +12,13 @@ ya = -2.0
 yb = 2.0
 
 epsilon = 1E-6
-iters = 20
+iters = 10
 
 #корни уравнения
-solutions = [cos((n)*pi/3)+1j*sin((n)*pi/3) for n in range(-1,1)]
-colors = [(1, 0, 0), (0, 1, 0), (1, 1, 0)]
+a1 = cos(pi/3)+1j*sin(pi/3)
+a2 = cos((-1.0)*pi/3)+1j*sin((-1.0)*pi/3)
+solutions = [1.0,  a1, a2]
+colors = [(1, 0, 0), (1, 1, 0), (0, 1, 0)]
 
 for re in range(imgx):
     for im in range(imgy):
