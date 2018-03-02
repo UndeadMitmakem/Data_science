@@ -1,13 +1,32 @@
 import math
-def f(x):
-    k = 0.01
-    return abs(math.sin(x)) -  kx
-def (a, b, eps):
-    if f(a) == 0:
-        print(a, f(a))
-    elif f(b) == 0:
-        print(b, f(b))
-    elif f(a)*f(b)<0:
-        while abs(a - b) > eps
-            x = (a+b)/2
-            print (x, f(x))
+
+k = 0.09
+a = 0
+b = 1.0 / k
+eps = 0.01
+
+
+def f(x, k):
+    return abs(math.sin(x)) - k*x
+def bisection (a, b, eps):
+    while abs(b-a) >= eps:
+        c = (a + b)/2
+        if f(c, k) == 0:
+            break
+        if f(a, k)*f(c, k) < 0:
+            b=c
+            a=c
+    return (c)  
+
+interval = [a]
+s = (b - math.acos(k)) / (2 * math.pi)
+n = int(math.floor(s))
+for i in range(n + 1):
+    y0 = (math.acos(k) + 2 * math.pi * i)
+    y1 = (math.acos(k) + 2 * math.pi * (i+1))
+    z = (y0 + y1) / 2
+    if z < b:
+        interval.append(z)
+interval.append(b)
+for i in range (len(interval)+1):
+    print(bisection(interval[i], interval[i+1], eps))
