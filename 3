@@ -1,0 +1,32 @@
+import math
+
+k = 0.09
+a = 0
+b = 1.0 / k
+eps = 1E-5
+
+
+def f(x, k):
+    return abs(math.sin(x)) - k*x
+def bisection (a, b, eps):
+    c = (a + b)/2
+    if f(a+eps, k)*f(c, k) < 0:
+        while abs(b-a) >= eps:
+            if f(a)*f(c)<0:
+                b=c
+            else:
+                a=c
+        return(c)
+        
+interval = [a]
+s = (b - math.acos(k)) / (2 * math.pi)
+n = int(math.floor(s))
+for i in range(n + 1):
+    y0 = (math.acos(k) + 2 * math.pi * i)
+    y1 = (math.acos(k) + 2 * math.pi * (i+1))
+    z = (y0 + y1) / 2
+    if z < b:
+        interval.append(z)
+interval.append(b)
+for i in range (len(interval)+1):
+    print(bisection(interval[i], interval[i+1], eps))
