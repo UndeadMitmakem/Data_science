@@ -1,0 +1,9 @@
+import json
+d = {'one':1, 'two':2}
+d['zero']= 0
+d['twenty one'] = [2, 1]
+print(d)
+with open('data.json', 'w', encoding = 'utf8') as f:
+    json.dump(d, f)
+with open('data.json') as f:
+    print(f.read())
