@@ -1,0 +1,12 @@
+from scipy.io.netcdf import netcdf_file
+with netcdf_file(r'C:\Users\student\Desktop\tos_O1_2001-2002.nc') as f:
+    print(f)
+    print(f.dimensions)
+    print(f.variables)
+    variables = f.variables 
+print(variables['lat'].data)
+print(variables['lon'].data)
+print(variables['time'].data)
+print(variables['time'].units)
+print(variables['tos'].shape)
+print(variables['tos'][0, 155, 37])
