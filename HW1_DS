@@ -1,0 +1,23 @@
+import numpy as np
+import pandas as pd
+from scipy.io.netcdf import netcdf_file
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+
+with netcdf_file(r'C:\Users\digital\Desktop\Data_science\MSR-2.nc', mmap=False)  as f:
+    variables = f.variables
+capetown = [-33.5, 18.29]
+lat = variables['latitude'].data
+lon = variables['longitude'].data
+i = np.searchsorted(lat, capetown[0])
+j = np.searchsorted(lon, capetown[1])
+ct_data = variables['Average_O3_column'][:, 113, 219]
+january_data = []
+for i in range(len(ct_data)):
+    if i%12 == 0:
+        january_data.append(ct_data[i])
+july_data = []
+for i in range(len(ct_data)):
+    if i%6 == 0:
+        july_data.append(ct_data[i])
+del july_data[0]
