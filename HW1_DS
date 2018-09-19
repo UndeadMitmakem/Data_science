@@ -9,15 +9,35 @@ with netcdf_file(r'C:\Users\digital\Desktop\Data_science\MSR-2.nc', mmap=False) 
 capetown = [-33.5, 18.29]
 lat = variables['latitude'].data
 lon = variables['longitude'].data
-i = np.searchsorted(lat, capetown[0])
-j = np.searchsorted(lon, capetown[1])
-ct_data = variables['Average_O3_column'][:, 113, 219]
+lat_index = np.searchsorted(lat, capetown[0])
+lon_index = np.searchsorted(lon, capetown[1])
+ct_data = variables['Average_O3_column'][lon_index, lat_index, :]
 january_data = []
 for i in range(len(ct_data)):
     if i%12 == 0:
         january_data.append(ct_data[i])
+temp = [x for x in ct_data]
+del temp[0:6]
 july_data = []
-for i in range(len(ct_data)):
-    if i%6 == 0:
-        july_data.append(ct_data[i])
-del july_data[0]
+for i in range(len(temp)):
+    if i%12 == 0:
+        july_data.append(temp[i])
+temp.clear()
+temp = [x for x in variables['time'].data]
+january_time = []
+for i in range(len(temp)):
+    if i%12 == 0:
+        january_time.append(temp[i])
+temp.clear()
+temp = [x for x in variables['time'].data]
+del temp[0:6]
+july_time = []
+for i in range(len(temp)):
+    if i%12 == 0:
+        july_time.append(temp[i]) 
+plt.plot(variables['time'].data, ct_data,label = 'За все время')
+plt.plot(january_time, january_data, label = 'Январь')
+plt.plot(july_time, july_data, label = 'Июль')
+plt.legend (loc ='best')
+plt.title ('Среднее содержание озона')
+    
