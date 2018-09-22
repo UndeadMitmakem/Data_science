@@ -1,6 +1,6 @@
 import numpy as np
-import pandas as pd
 from scipy.io.netcdf import netcdf_file
+import json
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
@@ -28,8 +28,6 @@ january_time = []
 for i in range(len(temp)):
     if i%12 == 0:
         january_time.append(temp[i])
-temp.clear()
-temp = [x for x in variables['time'].data]
 del temp[0:6]
 july_time = []
 for i in range(len(temp)):
@@ -40,3 +38,36 @@ plt.plot(january_time, january_data, label = 'Январь')
 plt.plot(july_time, july_data, label = 'Июль')
 plt.legend (loc ='best')
 plt.title ('Среднее содержание озона')
+plt.grid()
+plt.savefig('Average_O3_Capetown.png')
+all_min = np.amin(ct_data)
+all_max = np.amax(ct_data)
+all_mean = np.mean(ct_data)
+july_min = np.amin(july_data)
+july_max = np.amax(july_data)
+july_mean = np.mean(july_data)
+january_min = np.amin(january_data)
+january_max = np.amax(january_data)
+january_mean = np.mean(january_data)
+d = {
+  "city": "Moscow",
+  "coordinates": [37.66, 55.77],
+  "jan": {
+    "min": 294.0,
+    "max": 357.0,
+    "mean": 329.5
+  },
+  "jul": {
+    "min": 269.0,
+    "max": 298.0,
+    "mean": 284.0
+  },
+  "all": {
+    "min": 268.0,
+    "max": 389.0,
+    "mean": 306.7
+  }
+}
+
+with open('ozon.json', 'w') as f:
+    json.dump(d, f)
