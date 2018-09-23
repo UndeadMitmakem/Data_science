@@ -40,34 +40,35 @@ plt.legend (loc ='best')
 plt.title ('Среднее содержание озона')
 plt.grid()
 plt.savefig('Average_O3_Capetown.png')
-all_min = np.amin(ct_data)
-all_max = np.amax(ct_data)
-all_mean = np.mean(ct_data)
-july_min = np.amin(july_data)
-july_max = np.amax(july_data)
-july_mean = np.mean(july_data)
-january_min = np.amin(january_data)
-january_max = np.amax(january_data)
-january_mean = np.mean(january_data)
+all_min = float(np.amin(ct_data))
+all_max = float(np.amax(ct_data))
+all_mean = float(np.mean(ct_data))
+july_min = float(np.amin(july_data))
+july_max = float(np.amax(july_data))
+july_mean = float(np.mean(july_data))
+january_min = float(np.amin(january_data))
+january_max = float(np.amax(january_data))
+january_mean = float(np.mean(january_data))
 d = {
-  "city": "Moscow",
-  "coordinates": [37.66, 55.77],
+  "city": "Capetown",
+  "coordinates": capetown,
   "jan": {
-    "min": 294.0,
-    "max": 357.0,
-    "mean": 329.5
+    "min": january_min,
+    "max": january_max,
+    "mean": january_mean
   },
   "jul": {
-    "min": 269.0,
-    "max": 298.0,
-    "mean": 284.0
+    "min": july_min,
+    "max": july_max,
+    "mean": july_mean
   },
   "all": {
-    "min": 268.0,
-    "max": 389.0,
-    "mean": 306.7
+    "min": all_min,
+    "max": all_max,
+    "mean": all_mean
   }
 }
-
 with open('ozon.json', 'w') as f:
     json.dump(d, f)
+with open('ozon.json') as f:
+    print(f.read())
