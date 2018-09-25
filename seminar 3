@@ -53,7 +53,7 @@ def main():
     _x = (_a, _b, _c)
     #число точек
     t = np.linspace(0, 10, _n)
-    y = f(t, *_x) + np.random.normal(0, 0.1, _n)
+    y = f(t, *_x) + np.random.normal(0, 1.0, _n)
     #измеренные величины - у
     t_plot = np.linspace(0, 10, 200)
     plt.plot(t_plot, f(t_plot, *_x), label = 'true')
@@ -76,7 +76,6 @@ def main():
     y = f(t, *_x) + np.random.normal(0, 0.1, 200)
     t_plot = np.linspace(0, 10, 200)
     plt.plot(t_plot, f(t_plot, *_x), label = 'true')
-    plt.plot(t, y, 'x', label = 'data')
     plt.plot(t_plot, f(t_plot, *r.x), label = 'model')
     plt.grid()
     plt.legend()
@@ -85,5 +84,6 @@ def main():
 #lambda *x: f(t, *x) - функция от х, но выглядит так f(t, *x) 
 if __name__ == '__main__':
     main()
+
 #посчитать число вызовов, добавить массив ,кот.будет содержать cost = 0.5 * np.dot(r, r)
 #cost = количество вызовов cost на каждом шаге
