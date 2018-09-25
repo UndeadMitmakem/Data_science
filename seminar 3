@@ -1,0 +1,89 @@
+#метод Гаусса-Ньютона
+import numpy as np
+import matplotlib.pyplot as plt
+from collections import namedtuple
+
+
+
+def f(t,a,b,c):
+    return a*np.exp(-a*t) * t**2 + c
+
+Result = namedtuple(('Result'), ('nfev', 'cost', 'gradnorm', 'x')) 
+def j(t,a,b,c): 
+    jac = np.empty((t.size, 3), dtype = np.float)
+    jac[:, 0] = -b * np.exp(-a*t) * t**3 
+    jac[:, 1] = np.exp(-a*t) * t**2
+    jac[:, 2] = 1
+    return jac
+def gauss_newton(y, f , j, x0, k=1, tol = 1e-4):
+    """Метод Гаусса-Ньютона
+    y - массив измерений
+    f(*x) - модельная функция, возвращает вектор значений с размером y.shape
+    j(*x) - якобиан, возвращает матрицу с размером (y.size, x0.size)
+    x0 - вектор с нач.приближением
+    k - параметр метода
+    tol - относительная ошибка x
+    
+    Возвращает объект Result
+    """
+    x = np.asarray(x0, dtype = np.float)
+    while True:
+        r = y - f(*x)
+        jac = j(*x)
+        g = np.dot(jac.T, r)
+        delta_x = np.linalg.solve(
+                np.dot(jac.T, jac),
+                g
+                )
+        x += k*delta_x
+        if np.linalg.norm(delta_x) <= tol * np.linalg.norm(x):
+            break
+    return Result(
+            nfev=0, 
+            cost=0, 
+            gradnorm=np.linalg.norm(g), 
+            x=x)
+#nfev - число вызовов f
+def main():
+    _a = 0.75
+    _b = 2
+    _c = 0.5
+    
+    _n = 30 
+    _x = (_a, _b, _c)
+    #число точек
+    t = np.linspace(0, 10, _n)
+    y = f(t, *_x) + np.random.normal(0, 0.1, _n)
+    #измеренные величины - у
+    t_plot = np.linspace(0, 10, 200)
+    plt.plot(t_plot, f(t_plot, *_x), label = 'true')
+    #*_x распаковать кортеж
+    plt.plot(t, y, 'x', label = 'data')
+    plt.grid()
+    plt.legend()
+    
+    r = gauss_newton(
+        y,
+        lambda *x: f(t, *x),  
+        lambda *x: j(t, *x),
+        (1,1,1),
+        k=0.1,
+        tol = 1e-4
+        )
+    print(r)
+    
+    t = np.linspace(0, 10, 200)
+    y = f(t, *_x) + np.random.normal(0, 0.1, 200)
+    t_plot = np.linspace(0, 10, 200)
+    plt.plot(t_plot, f(t_plot, *_x), label = 'true')
+    plt.plot(t, y, 'x', label = 'data')
+    plt.plot(t_plot, f(t_plot, *r.x), label = 'model')
+    plt.grid()
+    plt.legend()
+    
+#ситема модулей импорта в питоне 
+#lambda *x: f(t, *x) - функция от х, но выглядит так f(t, *x) 
+if __name__ == '__main__':
+    main()
+#посчитать число вызовов, добавить массив ,кот.будет содержать cost = 0.5 * np.dot(r, r)
+#cost = количество вызовов cost на каждом шаге
