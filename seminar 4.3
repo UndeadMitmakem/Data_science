@@ -1,0 +1,17 @@
+import numpy as np
+from scipy.io.netcdf import netcdf_file
+import matplotlib.pyplot as plt
+import pandas as pd
+
+"""анимация для озона"""
+plt.figure()
+plt.subplot(111, projection = 'hammer')
+x = np.linspace(-np.pi, np.pi, 10)
+y = np.linspace(-np.pi/2, np.pi/2, 10)
+X, Y = np.meshgrid(x,y)
+"""декартово произведение"""
+Z = np.sin(X+Y)
+plt.contourf(X,Y,Z)
+plt.plot(np.pi/2, np.pi/4, '*', ms = 10)
+plt.colorbar()
+plt.grid()
