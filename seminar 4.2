@@ -1,0 +1,26 @@
+import numpy as np
+from scipy.io.netcdf import netcdf_file
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+import pandas as pd
+
+file_spot = 'spot_num.txt'
+spots = pd.read_table(file_spot, sep = r'\s+')
+print(spots)
+pd.plotting.autocorrelation_plot(spots.SSN)    
+"""преобразование Фурье"""
+fft_spots = np.fft.fft(spots.SSN)
+fft_real = fft_spots.real[:len(fft_spots)//2]
+print(fft_spots)
+plt.figure()
+plt.xlabel('nu. 1/year')
+nu = 12 * np.arange(len(fft_spots)//2) / len(fft_spots)
+"""максимальный индекс соответствует макс частоте"""
+plt.plot(nu, fft_spots.real[:len(fft_spots)//2])
+"""какие характерные периоды максимума появления солнечных пятен"""
+plt.xlim([0,0.2])
+nu_slice = (0.05 < nu) & (nu < 0.1)
+"""индекс локального максимума"""
+print(nu[nu_slice])
+i_max = np.argmax(fft_real[nu_slice])
+print(1 / nu[nu_slice][i_max], 'years')
