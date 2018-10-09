@@ -150,6 +150,8 @@ def main():
     plt.figure(2)
     plt.plot(np.linspace(1, len(r_gn.cost), len(r_gn.cost)), r_gn.cost, label = 'nfev_gn')
     plt.plot(np.linspace(1, len(r_lm.cost), len(r_lm.cost)), r_lm.cost, label = 'nfev_lm')
+    plt.title ('Итерации')
+    plt.legend (loc ='best')
     plt.savefig('cost.png', format='png', dpi=100)
     d = {"Gauss-Newton": {"H0": r_gn.x[0], "Omega":r_gn.x[1], "nfev": r_gn.nfev},
   "Levenberg-Marquardt": {"H0": r_lm.x[0], "Omega": r_lm.x[1], "nfev": r_lm.nfev}
