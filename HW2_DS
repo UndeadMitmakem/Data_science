@@ -2,7 +2,7 @@ import numpy as np
 from scipy import integrate
 import matplotlib.pyplot as plt
 from collections import namedtuple
-
+import json
 def d(z, H0, omega):
     """Фотометрическое расстояние
     z - красное смещение
@@ -140,13 +140,19 @@ def main():
             nu = 2,
             tol = 1e-4)
     plt.plot(data['z'], data['mu'], 'x', label = 'data')
-    plt.grid()
-    plt.legend()
     plt.plot(data['z'], f(data['z'], *r_gn.x), label = 'model_gn')
     plt.plot(data['z'], f(data['z'], *r_lm.x), label = 'model_lv')
+    plt.title ('Темная энергия')
     plt.grid()
-    plt.legend()
+    plt.legend (loc ='best')
     
 if __name__ == '__main__':
     main()
-
+    
+d = {"Gauss-Newton": {"H0": 50.0, "Omega": 45.0, "nfev": 133.0},
+  "Levenberg-Marquardt": {"H0": 50.0, "Omega": 45.0, "nfev": 133.0}
+  }
+with open('parameters.json', 'w') as f:
+    json.dump(d, f)
+with open('parameters.json') as f:
+    print(f.read())
