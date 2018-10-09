@@ -1,5 +1,5 @@
 import numpy as np
-import scipy as sp
+from scipy import integrate
 import matplotlib.pyplot as plt
 from collections import namedtuple
 
@@ -9,29 +9,26 @@ def d(z, H0, omega):
     H0 - постоянная Хаббла
     omega - доля темной материи в составе Вселенной (от 0 до 1)
     """
-    с = 3e11
     expression = lambda z0: 1/np.sqrt((1-omega)*((1+z0)**3) + omega)
-    integral = np.fromiter((sp.integrate.quad(expression, 0, t)[0] for t in z), dtype = np.float)
-    return c * (1 + z) * integral / H0
-def mu(z,H0,omega):
+    integral = np.fromiter((integrate.quad(expression, 0, t)[0] for t in z), dtype = np.float)
+    return 3e11 * (1 + z) * integral / H0
+def f(z,H0,omega):
     """Модуль расстояния
     z - красное смещение
     H0 - постоянная Хаббла
     omega - доля темной материи в составе Вселенной (от 0 до 1)
     """
-    с = 3e11
     expression = lambda z0: 1/np.sqrt((1-omega)*((1+z0)**3) + omega)
-    integral = np.fromiter((sp.integrate.quad(expression, 0, t)[0] for t in z), dtype = np.float)
-    return 5*np.log10(c * (1 + z) * integral / H0) - 5
+    integral = np.fromiter((integrate.quad(expression, 0, t)[0] for t in z), dtype = np.float)
+    return 5*np.log10(3e11 * (1 + z) * integral / H0) - 5
 
 Result = namedtuple(('Result'), ('nfev', 'cost', 'gradnorm', 'x')) 
 def j(z, H0, omega): 
-    c = 3e11
     jac = np.empty((z.size, 2), dtype = np.float)
-    diff_int_exp = lambda z0: (1-(1+z0)**3)/(((1-omega)(1+z0)**3+omega)**(3/2))
-    diff_integral = np.fromiter((sp.integrate.quad(diff_int_exp, 0, t)[0] for t in z), dtype = np.float)
+    diff_int_exp = lambda z0: (1-(1+z0)**3)/(((1-omega)*((1+z0)**3)+omega)**(3/2))
+    diff_integral = np.fromiter((integrate.quad(diff_int_exp, 0, t)[0] for t in z), dtype = np.float)
     jac[:, 0] = -5/(np.log(10)*H0) 
-    jac[:, 1] = (-2.5)*(1/np.log(10))*(c(1+z)/(d(z,H0,omega)*H0))*diff_integral 
+    jac[:, 1] = (-2.5)*(1/np.log(10))*(3e11*(1+z)/(d(z,H0,omega)*H0))*diff_integral 
     return jac
 def gauss_newton(y, f , j, x0, k=1, tol = 1e-4):
     """Метод Гаусса-Ньютона
@@ -109,8 +106,11 @@ def lm(y, f , j, x0, lambda0 = 1e-2, nu = 2, tol = 1e-4):
             else:
                 while cost1>cost: 
                     lambda0 *= nu
-                    deltax2 = lambda0*np.eye(*np.dot(jac.T, jac).shape
-                    cost1 =  
+                    par_ = lambda0*np.eye(*np.dot(jac.T, jac).shape)
+                    delta_x_ = np.linalg.solve(np.dot(jac.T, jac) + par_,g)
+                    x_ = delta_x_ + x
+                    r_ = y - f(*x_)
+                    cost1 = 0.5 * np.dot(r_, r_)
            
         if np.linalg.norm(delta_x2) <= tol * np.linalg.norm(x):
                 break
@@ -124,39 +124,26 @@ def main():
     data = np.genfromtxt('jla_mub.txt', names = ('z', 'mu'))
     H_0 = 50.0
     omega_0 = 0.5
-    r = gauss_newton(
-            np_asarray(data['mu']),
+    r_gn = gauss_newton(
+            np.asarray(data['mu']),
             lambda *x: f(data['z'], *x),  
-            lambda *x: j(f(data['z'], *x),)
+            lambda *x: j(data['z'], *x),
             (H_0, omega_0),
             k = 1, 
             tol = 1e-4)
-    plt.plot(t, y, 'x', label = 'data')
-    plt.grid()
-    plt.legend()
-    
-    gn = gauss_newton(
-        y,
-        lambda *x: f(t, *x),  
-        lambda *x: j(t, *x),
-        (1,1,1),
-        k=0.1,
-        tol = 1e-4)
-    lev_m = lm(
-            y,
-            lambda *x: f(t, *x),  
-            lambda *x: j(t, *x),
-            (1,1,1),
+    r_lm = lm(
+            np.asarray(data['mu']),
+            lambda *x: f(data['z'], *x),  
+            lambda *x: j(data['z'], *x),
+            (H_0, omega_0),
             lambda0 = 1e-2,
             nu = 2,
             tol = 1e-4)
-    print(lev_m)
-    t = np.linspace(0, 10, 200)
-    y = f(t, *_x) + np.random.normal(0, 0.1, 200)
-    t_plot = np.linspace(0, 10, 200)
-    plt.plot(t_plot, f(t_plot, *_x), label = 'true')
-    plt.plot(t_plot, f(t_plot, *gn.x), label = 'model_gn')
-    plt.plot(t_plot, f(t_plot, *lev_m.x), label = 'model_lv')
+    plt.plot(data['z'], data['mu'], 'x', label = 'data')
+    plt.grid()
+    plt.legend()
+    plt.plot(data['z'], f(data['z'], *r_gn.x), label = 'model_gn')
+    plt.plot(data['z'], f(data['z'], *r_lm.x), label = 'model_lv')
     plt.grid()
     plt.legend()
     
