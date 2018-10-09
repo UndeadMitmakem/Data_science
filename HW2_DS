@@ -5,7 +5,171 @@ from collections import namedtuple
 import json
 def d(z, H0, omega):
     """Фотометрическое расстояние
+    z - красное смещениеimport numpy as np
+from scipy import integrate
+import matplotlib.pyplot as plt
+from collections import namedtuple
+import json
+def d(z, H0, omega):
+    """Фотометрическое расстояние
     z - красное смещение
+    H0 - постоянная Хаббла
+    omega - доля темной материи в составе Вселенной (от 0 до 1)
+    """
+    expression = lambda z0: 1/np.sqrt((1-omega)*((1+z0)**3) + omega)
+    integral = np.fromiter((integrate.quad(expression, 0, t)[0] for t in z), dtype = np.float)
+    return 3e11 * (1 + z) * integral / H0
+def f(z,H0,omega):
+    """Модуль расстояния
+    z - красное смещение
+    H0 - постоянная Хаббла
+    omega - доля темной материи в составе Вселенной (от 0 до 1)
+    """
+    expression = lambda z0: 1/np.sqrt((1-omega)*((1+z0)**3) + omega)
+    integral = np.fromiter((integrate.quad(expression, 0, t)[0] for t in z), dtype = np.float)
+    return 5*np.log10(3e11 * (1 + z) * integral / H0) - 5
+
+Result = namedtuple(('Result'), ('nfev', 'cost', 'gradnorm', 'x')) 
+def j(z, H0, omega): 
+    jac = np.empty((z.size, 2), dtype = np.float)
+    diff_int_exp = lambda z0: (1-(1+z0)**3)/(((1-omega)*((1+z0)**3)+omega)**(3/2))
+    diff_integral = np.fromiter((integrate.quad(diff_int_exp, 0, t)[0] for t in z), dtype = np.float)
+    jac[:, 0] = -5/(np.log(10)*H0) 
+    jac[:, 1] = (-2.5)*(1/np.log(10))*(3e11*(1+z)/(d(z,H0,omega)*H0))*diff_integral 
+    return jac
+def gauss_newton(y, f , j, x0, k=1, tol = 1e-4):
+    """Метод Гаусса-Ньютона
+    y - массив измерений
+    f(*x) - модельная функция, возвращает вектор значений с размером y.shape
+    j(*x) - якобиан, возвращает матрицу с размером (y.size, x0.size)
+    x0 - вектор с нач.приближением
+    k - параметр метода
+    tol - относительная ошибка x
+    
+    Возвращает объект Result
+    """
+    x = np.asarray(x0, dtype = np.float)
+    nfev = 0
+    c_list = []
+    while True:
+        r = y - f(*x)
+        jac = j(*x)
+        g = np.dot(jac.T, r)
+        cost = 0.5 * np.dot(r, r)
+        nfev += 1
+        c_list.append(cost)
+        delta_x = np.linalg.solve(
+                np.dot(jac.T, jac),
+                g
+                )
+        x += k*delta_x
+        if np.linalg.norm(delta_x) <= tol * np.linalg.norm(x):
+            break
+    return Result(
+            nfev=nfev, 
+            cost=np.asarray(c_list), 
+            gradnorm=np.linalg.norm(g), 
+            x=x)
+
+def lm(y, f , j, x0, lambda0 = 1e-2, nu = 2, tol = 1e-4):
+    """Метод Левенберга-Марквардта
+    y - массив измерений
+    f(*x) - модельная функция, возвращает вектор значений с размером y.shape
+    j(*x) - якобиан, возвращает матрицу с размером (y.size, x0.size)
+    x0 - вектор с нач.приближением
+    lambda0 - первоначальный параметр метода
+    nu - постоянный безразмерный коэффициент, больше 1
+    tol - относительная ошибка x
+    Возвращает объект Result
+    """
+    x = np.asarray(x0, dtype = np.float)
+    nfev = 0
+    c_list = []
+    while True:
+        r = y - f(*x)
+        jac = j(*x)
+        g = np.dot(jac.T, r)
+        par1 = lambda0*np.eye(*np.dot(jac.T, jac).shape)
+        par2 = (lambda0/nu)*np.eye(*np.dot(jac.T, jac).shape)
+        cost = 0.5 * np.dot(r, r)
+        delta_x1 = np.linalg.solve(np.dot(jac.T, jac) + par1,g)
+        delta_x2 =  np.linalg.solve(np.dot(jac.T, jac) + par2,g)
+        x1 = delta_x1 + x
+        x2 = delta_x2 + x
+        r1 = y - f(*x1)
+        r2 = y - f(*x2)
+        cost1 = 0.5 * np.dot(r1, r1)
+        cost2 = 0.5 * np.dot(r2, r2)
+        nfev += 2
+        c_list.append(cost)
+        if cost2 <= cost:
+            x = x2
+            r = r2
+            lambda0 *= 1/nu
+        else:
+            if cost2 <= cost1:
+                x=x1
+                r=r1
+            else:
+                while cost1>cost: 
+                    lambda0 *= nu
+                    par_ = lambda0*np.eye(*np.dot(jac.T, jac).shape)
+                    delta_x_ = np.linalg.solve(np.dot(jac.T, jac) + par_,g)
+                    x_ = delta_x_ + x
+                    r_ = y - f(*x_)
+                    nfev +=1
+                    cost1 = 0.5 * np.dot(r_, r_)
+           
+        if np.linalg.norm(delta_x2) <= tol * np.linalg.norm(x):
+                break
+    return Result(
+            nfev=nfev, 
+            cost=np.asarray(c_list), 
+            gradnorm=np.linalg.norm(g), 
+            x=x)    
+
+def main():
+    data = np.genfromtxt('jla_mub.txt', names = ('z', 'mu'))
+    H_0 = 50.0
+    omega_0 = 0.5
+    r_gn = gauss_newton(
+            np.asarray(data['mu']),
+            lambda *x: f(data['z'], *x),  
+            lambda *x: j(data['z'], *x),
+            (H_0, omega_0),
+            k = 1, 
+            tol = 1e-4)
+    r_lm = lm(
+            np.asarray(data['mu']),
+            lambda *x: f(data['z'], *x),  
+            lambda *x: j(data['z'], *x),
+            (H_0, omega_0),
+            lambda0 = 1e-2,
+            nu = 2,
+            tol = 1e-4)
+    plt.plot(data['z'], data['mu'], 'x', label = 'data')
+    plt.plot(data['z'], f(data['z'], *r_gn.x), label = 'model_gn')
+    plt.plot(data['z'], f(data['z'], *r_lm.x), label = 'model_lm')
+    plt.title ('Темная энергия')
+    plt.grid()
+    plt.legend (loc ='best')
+    plt.savefig('z-mu.png', format='png', dpi=100)
+    plt.figure(2)
+    plt.plot(np.linspace(1, len(r_gn.cost), len(r_gn.cost)), r_gn.cost, label = 'nfev_gn')
+    plt.plot(np.linspace(1, len(r_lm.cost), len(r_lm.cost)), r_lm.cost, label = 'nfev_lm')
+    plt.savefig('cost.png', format='png', dpi=100)
+    d = {"Gauss-Newton": {"H0": r_gn.x[0], "Omega":r_gn.x[1], "nfev": r_gn.nfev},
+  "Levenberg-Marquardt": {"H0": r_lm.x[0], "Omega": r_lm.x[1], "nfev": r_lm.nfev}
+  }
+    with open('parameters.json', 'w') as f2:
+        json.dump(d, f2)
+    with open('parameters.json') as f2:
+        print(f2.read())
+    
+    
+if __name__ == '__main__':
+    main()
+    
     H0 - постоянная Хаббла
     omega - доля темной материи в составе Вселенной (от 0 до 1)
     """
