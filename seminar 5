@@ -24,7 +24,7 @@ def conj_grad(A, c,  x0, delta):
         p = -g + beta*p
         
     return x
-
+# то же самое, что и np.dot
 def Q(A,x,c):
     Q = x@(A.T @ A@ x) + c@x
     return Q
