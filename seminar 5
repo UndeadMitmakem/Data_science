@@ -1,1 +1,48 @@
+import numpy as np
 
+#метод сопряженных градиентов
+def conj_grad(A, c,  x0, delta):
+    
+    x0 = np.asarray(x0)
+    x = x0.copy()
+    A = np.asarray(A)
+    c = np.asarray(c)
+    H = 2*np.dot(A.T, A)
+    g = np.dot(H,x) + c
+    p = -g
+    
+    for _ in range(x.size):
+        H_p = np.dot(H, p)
+        alpha = np.dot(g,g)/np.dot(p, H_p)
+        x = x + alpha * p
+        if np.linalg.norm(x - x0) > delta:
+            x = x0 + (x-x0)/np.linalg.norm(x - x0) * delta
+            break
+        g_old = np.copy(g)
+        g += alpha * H_p
+        beta = np.dot(g,g)/np.dot(g_old,g_old)
+        p = -g + beta*p
+        
+    return x
+
+def Q(A,x,c):
+    Q = x@(A.T @ A@ x) + c@x
+    return Q
+A = np.array([[1.0, 0.25, 0.0],
+              [-0.5, 1.0, 0.0],
+              [0.0, 0.0, 1.0]])
+x_min = np.array([1.0, 2.0, 4.0])
+
+c = -2*np.dot(np.dot(A.T, A), x_min)
+x0 =  x_min + np.array([1.0, 1.0, 1.0])
+x = conj_grad(A, c, x0, delta =1)
+
+print(x, x_min)
+print("Q-Qmin", Q(A,x,c)-Q(A, x_min,c))
+print('x-x0', np.linalg.norm(x-x0))
+
+
+
+        
+        
+   
