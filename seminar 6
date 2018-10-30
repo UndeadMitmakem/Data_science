@@ -6,10 +6,10 @@ a = 0
 b = 1
 
 def data_generation():
-    tau = 0.8
+    tau = 0.5
     mu = 0.5
     sigma = 0.2
-    n = 1000
+    n = 10000
     
     x_n = stats.norm.rvs(loc=mu, scale=sigma, size=int(tau*n))
     x_u = stats.uniform.rvs(loc=a, scale=b-a, size=int((1-tau)*n))
@@ -18,15 +18,55 @@ def data_generation():
 #сгенерили рандом-данные из 2 распределений
     
 def t_ij(x, tau, mu, sigma):
-    pass
+    '''T_ij(x, theta)'''
+    p_in = stats.norm.pdf(x, loc=mu, scale=sigma)
+    p_iu = stats.uniform.pdf(x, loc=a, scale=b-a) #1 / (b-a) - не совсем верно
+    p = tau*p_in + (1-tau)*p_iu
+    t_in = tau * p_in / p
+    t_iu = (1-tau) * p_in / p
+    return (t_in, t_iu) #or можно написать так np.vstack((t_i1, t_i2))
+#p_in - норм.распр., p_iu - р/м распр. (плотности вероятности)
 #T_ij см.лекцию, короче
-def update_theta(x, old):
-    pass
+    
+def p_ij(x, tau, mu, sigma):
+     p_in = stats.norm.pdf(x, loc=mu, scale=sigma)
+     p_iu = stats.uniform.pdf(x, loc=a, scale=b-a) #1 / (b-a) - не совсем верно
+     p = tau*p_in + (1-tau)*p_iu
+     return (p_in, p_iu)
 
-def em(x, tau, mu, sigma, eps=1e-3):
+def update_theta(x, tau, mu, sigma):
+    '''iterate theta'''
+    t_n, t_u = t_ij(x, tau, mu, sigma)
+    tau = np.sum(t_n) / np.sum(t_n + t_u) #np.sum(t_n + t_u) = x.size
+    mu = np.sum(t_n * x) / np.sum(t_n)
+    sigma = np.sqrt(np.sum(t_n * (x-mu)**2) / np.sum(t_n))
+    return tau, mu, sigma
+
+def em(x, tau, mu, sigma, rtol=1e-3):
+    '''tau, mu, sigma are initial estimations, returns theta'''
+    new = (tau, mu, sigma)
+    while True:
+        old = new
+        new = update_theta(x, *old)
+        #тупо сравнение двух массивов atol - абс.погр., rtol - относит/погр.
+        #if np.max(np.abs((new - old) / new)) < rtol: 
+        if np.allclose(new, old, rtol=rtol, atol=0):
+            break
+    return new
+#пока три значения не сойдутся с относит.точностью, цикл типа while
 def main():
     x = data_generation()
     plt.hist(x, bins=100)
+    tau, mu, sigma = 0.7, 0.3, 0.5
+#    x_ = np.linspace(0, 1, 101)
+#   плотаем итерации, это не нужно в дз
+#    for k in range(5):
+#        plt.plot(x_, 10*p_ij(x_, tau, mu, sigma)[0], label = str(k))
+#        tau, mu, sigma = update_theta(x, tau, mu, sigma)
+#    plt.legend()
+    tau, mu, sigma = em(x, tau, mu, sigma)    
+    print(tau, mu, sigma)
+
     
 if __name__ == '__main__':
     main()
