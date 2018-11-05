@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 
-#Задание 2
+
 def t_ij(x, tau, mu1, mu2, sigma1, sigma2):
     """T_ij(x, theta)"""
     p_in1 = stats.norm.pdf(x, loc = mu1, scale = sigma1)
@@ -12,9 +12,9 @@ def t_ij(x, tau, mu1, mu2, sigma1, sigma2):
     t_in2 = (1-tau) * p_in2 / p
     return t_in1, t_in2
 
-def update_theta(x, tau, mu, sigma):
+def update_theta(x, tau, mu1, mu2, sigma1, sigma2):
     """Iterate theta"""
-    t_n1, t_n2 = t_ij(x, tau, mu, sigma)
+    t_n1, t_n2 = t_ij(x, tau, mu1, mu2, sigma1, sigma2)
     tau = np.sum(t_n1) / x.size
     mu1 = np.sum(t_n1 * x) /  np.sum(t_n1)
     mu2 = np.sum(t_n2 * x) /  np.sum(t_n2)
