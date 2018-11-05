@@ -2,7 +2,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 
+#первое задание, не пашет, как оптимизировать параметры?
 
+def data_generation():
+    tau = 0.2
+    mu1 = 0.5     
+    sigma1 = 0.3 
+    mu2 = 0.6
+    sigma2 = 0.1
+    n = 100
+    
+    x_n1 = stats.norm.rvs(loc=mu1, scale=sigma1, size=int(tau*n))
+    x_n2 = stats.norm.rvs(loc=mu2, scale=sigma2, size=int(tau*n))
+    x = np.concatenate((x_n1, x_n2))
+    return x
+
+def double_gauss(x, tau, mu1, sigma1, mu2, sigma2):
+    p1 = stats.norm.pdf(x, loc = mu1, scale = sigma1) 
+    p2 = stats.norm.pdf(x, loc = mu2, scale = sigma2) 
+    return tau*p1 + (1-tau)*p2
+    
+result = optimize.minimize(double_gauss, 6, args = (0.1, 0.7, 0.6, 0.3, 0.5))
+print(result)
+
+#второе задание
 def t_ij(x, tau, mu1, mu2, sigma1, sigma2):
     """T_ij(x, theta)"""
     p_in1 = stats.norm.pdf(x, loc = mu1, scale = sigma1)
@@ -42,3 +65,41 @@ def main():
     
 if __name__ == '__main__':
     main()
+
+#это третье задание
+
+w = 100
+h = 50
+
+def t_ij(x, tau1, tau2, mu1, mu2, sigma1, sigma2):
+    """T_ij(x, theta)"""
+    p_in1 = (stats.norm.pdf(x, loc = mu1, scale = sigma1))*(1/np.sqrt(2*np.pi*sigma1))
+    p_in2 = (stats.norm.pdf(x, loc = mu2, scale = sigma2))*(1/np.sqrt(2*np.pi*sigma2))
+    p_un = 1/ (w*h)
+    p = tau1 * p_in1 + tau2 * p_in2 + (1-tau1-tau2) * p_un
+    t_in1 = tau1 * p_in1 / p
+    t_in2 = tau2 * p_in2 / p
+    t_un = (1 - tau1 - tau2) * p_un / p 
+    return t_in1, t_in2, t_un
+
+def update_theta(x, tau1, tau2, mu1, mu2, sigma1, sigma2):
+    """Iterate theta"""
+    t_n1, t_n2, t_u = t_ij(x, tau1, tau2, mu1, mu2, sigma1, sigma2)
+    tau1 = np.sum(t_n1) / x.size
+    tau2 = np.sum(t_n2) / x.size
+    mu1 = np.sum(t_n1 * x) /  np.sum(t_n1)
+    mu2 = np.sum(t_n2 * x) /  np.sum(t_n2)
+    sigma1 = np.sqrt(np.sum(t_n1 * (x - mu1)**2) /  np.sum(t_n1))
+    sigma1 = np.sqrt(np.sum(t_n1 * (x - mu1)**2) /  np.sum(t_n1))
+    return tau1, tau2, mu1, sigma1, mu2, sigma2
+
+def em_complicated_function(x, tau1, tau2, mu1, sigma1, mu2, sigma2, rtol=1e-3):
+    """tau, mu, sigma are initiial astimations, returns theta"""
+    new = (tau1, tau2, mu1, sigma1, mu2, sigma2)
+    rtol = 1e-3
+    while True:
+        old = new
+        new = update_theta(x, *old)
+        if np.allclose(new, old, rtol = rtol, atol = 0):
+            break
+    return new
