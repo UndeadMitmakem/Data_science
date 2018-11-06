@@ -1,0 +1,23 @@
+import numpy as np
+from scipy import optimize
+
+def phi(params, x, y):
+    b = params[0]
+    #tau, mu1, sigma1, mu2, sigma2 = params 
+    return np.sum((y - b*x)**2)
+    
+    
+def main():
+    b = 5
+    x = np.linspace(0, 1, 11)
+    y = b*x + np.random.normal(0, 0.1, x.shape)
+    result = optimize.minimize(phi, x0 = [3], args = (x, y))
+    print(result)
+    print(result.x)
+    #есть лм фит в сайпае, optimize.least_squares
+    #curvefit - это для одномерного распределения 
+
+
+    
+if __name__ == '__main__':
+    main()
