@@ -1,0 +1,15 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+t = np.arange(-5, 5)
+x = np.exp(-t**2) 
+
+signal = np.concatenate((x, np.zeros(10), x, np.zeros(10), x, np.zeros(10)))
+signal += np.random.normal(0, 0.1, signal.size)
+plt.plot(signal)
+conv = np.convolve(signal, x[::-1], mode = 'same')
+plt.plot(conv)
+print(signal.size, conv.size)
+
+plt.figure()
+plt.plot(conv-signal)
