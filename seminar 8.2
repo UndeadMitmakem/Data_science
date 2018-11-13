@@ -1,0 +1,32 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+code = np.array([+1, +1, +1, -1, -1, -1, +1, -1, -1, +1, -1], dtype = np.int8)
+code = np.repeat(code, 5)
+#plt.plot(np.convolve(code, code[::-1], mode = 'full'))
+#последовательность Баркера
+
+c_signal = np.concatenate((code, -code)) #True/false
+#шум добавили
+signal = c_signal + np.random.normal(0, 0.2, signal.size)
+#plt.plot(c_signal)
+#plt.plot(signal)
+
+#plt.plot(signal, '*')
+conv = np.convolve(signal, code[::-1], mode = 'same')
+plt.figure()
+#plt.plot(conv)
+
+#разобраться как пики найти
+
+s = 'Abc'
+b = s.encode()
+print(b, b.decode())
+arr = np.frombuffer(b, dtype = np.uint8)
+bits = np.unpackbits(arr)
+print(bits)
+print(bits, np.packbits(bits))
+output = 2*bits.astype(np.int8) - 1
+print(output)
+
+#в дз то же самое только наоборот двигаемся
