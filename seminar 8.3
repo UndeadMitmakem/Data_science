@@ -1,7 +1,37 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+#pulsar = np.fromfile(r'pulsar.dat')
+#plt.plot(pulsar[:1000])
+#прямой фурье, фильтруем, обратный фурье, вырезаем что-то квазипериодическое и вырезаем, плюс получить период
 
-#PULSAR
-pulsar = np.fromfile(r'pulsar.dat')
-plt.plot(pulsar[:1000])
+t= np.arange(10000)
+x = np.cos(2*np.pi*t/100)
+sigma=15
+delta_t = 10*sigma
+
+gauss =np.exp(-np.arange(-delta_t//2, delta_t//2)**2/sigma**2)
+#plt.plot(gauss)
+
+peaks = np.zeros_like(t)
+P = 1500
+for i in range(t.size//P-1):
+    peaks[i*P:i*P+delta_t]= gauss
+#plt.plot(peaks)
+    
+signal = 0.1*x + 1*peaks +np.random.normal(0,0.1, x.size)
+plt.plot(signal[:1000])
+
+plt.figure()
+f = np.fft.fft(signal)
+plt.plot(f)
+f_cut = f.copy()
+#f_cut[np.abs(f.real) < 80] = 0
+f_cut[:200] = 0
+f_cut[-200:] = 0
+plt.plot(f_cut.real)
+
+inv = np.fft.fft(f_cut)
+plt.figure()
+plt.plot(signal[:1000])
+plt.plot(inv[:1000])
