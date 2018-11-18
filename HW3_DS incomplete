@@ -2,28 +2,40 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 
-#первое задание, не пашет, как оптимизировать параметры?
-
+#первое задание, все ок
 def data_generation():
-    tau = 0.2
-    mu1 = 0.5     
-    sigma1 = 0.3 
-    mu2 = 0.6
-    sigma2 = 0.1
-    n = 100
+    tau = 0.8
+    mu1 = 0.5
+    sigma1 = 0.2
+    mu2 = 0.8
+    sigma2= 0.6
+    n=10000
     
     x_n1 = stats.norm.rvs(loc=mu1, scale=sigma1, size=int(tau*n))
-    x_n2 = stats.norm.rvs(loc=mu2, scale=sigma2, size=int(tau*n))
+    x_n2 = stats.norm.rvs(loc=mu2, scale=sigma2, size=int((1-tau)*n))
     x = np.concatenate((x_n1, x_n2))
     return x
 
-def double_gauss(x, tau, mu1, sigma1, mu2, sigma2):
-    p1 = stats.norm.pdf(x, loc = mu1, scale = sigma1) 
-    p2 = stats.norm.pdf(x, loc = mu2, scale = sigma2) 
-    return tau*p1 + (1-tau)*p2
+def minimum_opt(x, tau, mu1, sigma1, mu2, sigma2): 
+    params = [tau, mu1, sigma1, mu2, sigma2]
+    def double_gauss(params1):
+        tau, mu1, sigma1, mu2, sigma2 = params1
+        p1 = stats.norm.pdf(x, loc = mu1, scale = sigma1) 
+        p2 = stats.norm.pdf(x, loc = mu2, scale = sigma2) 
+        return -np.sum(np.log(tau*p1 + (1-tau)*p2))
+    result = optimize.minimize(double_gauss, x0 = params, tol = 1e-3)
+    return result
+
+def main():
+    x = data_generation()
+    plt.hist(x, bins=1000)
+    tau, mu1, sigma1, mu2, sigma2 = 0.85, 0.55, 0.15, 0.82, 0.61
     
-result = optimize.minimize(double_gauss, 6, args = (0.1, 0.7, 0.6, 0.3, 0.5))
-print(result)
+    result = minimum_opt(x, tau, mu1, sigma1, mu2, sigma2)
+    print(result)
+   
+if __name__ == '__main__':
+    main()
 
 #второе задание
 def t_ij(x, tau, mu1, mu2, sigma1, sigma2):
