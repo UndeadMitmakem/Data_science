@@ -37,8 +37,25 @@ def main():
 if __name__ == '__main__':
     main()
 
-#второе задание
-def t_ij(x, tau, mu1, mu2, sigma1, sigma2):
+#второе задание, все ок
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+def data_generation():
+    tau = 0.5
+    mu1 = 0.1
+    sigma1 = 0.2
+    mu2 = 0.8
+    sigma2 = 0.6
+    n = 10000
+    
+    x_n1 = stats.norm.rvs(loc=mu1, scale=sigma1, size=int(tau*n))
+    x_n2 = stats.norm.rvs(loc=mu2, scale=sigma2, size=int((1-tau)*n))
+    x = np.concatenate((x_n1, x_n2))
+    return x
+
+def t_ij(x, tau, mu1, sigma1, mu2, sigma2):
     """T_ij(x, theta)"""
     p_in1 = stats.norm.pdf(x, loc = mu1, scale = sigma1)
     p_in2 = stats.norm.pdf(x, loc = mu2, scale = sigma2)
@@ -47,18 +64,18 @@ def t_ij(x, tau, mu1, mu2, sigma1, sigma2):
     t_in2 = (1-tau) * p_in2 / p
     return t_in1, t_in2
 
-def update_theta(x, tau, mu1, mu2, sigma1, sigma2):
+def update_theta(x, tau, mu1, sigma1, mu2, sigma2):
     """Iterate theta"""
-    t_n1, t_n2 = t_ij(x, tau, mu1, mu2, sigma1, sigma2)
+    t_n1, t_n2 = t_ij(x, tau, mu1, sigma1, mu2, sigma2)
     tau = np.sum(t_n1) / x.size
     mu1 = np.sum(t_n1 * x) /  np.sum(t_n1)
     mu2 = np.sum(t_n2 * x) /  np.sum(t_n2)
     sigma1 = np.sqrt(np.sum(t_n1 * (x - mu1)**2) /  np.sum(t_n1))
-    sigma1 = np.sqrt(np.sum(t_n1 * (x - mu1)**2) /  np.sum(t_n1))
+    sigma2 = np.sqrt(np.sum(t_n2 * (x - mu2)**2) /  np.sum(t_n2))
     return tau, mu1, sigma1, mu2, sigma2
 
 def em_double_gauss(x, tau, mu1, sigma1, mu2, sigma2, rtol=1e-3):
-    """tau, mu, sigma are initiial astimations, returns theta"""
+    """tau, mu, sigma are initiial estimations, returns theta"""
     new = (tau, mu1, sigma1, mu2, sigma2)
     rtol = 1e-3
     while True:
@@ -67,13 +84,13 @@ def em_double_gauss(x, tau, mu1, sigma1, mu2, sigma2, rtol=1e-3):
         if np.allclose(new, old, rtol = rtol, atol = 0):
             break
     return new
-    
+
 def main():
     x = data_generation()
-    plt.hist(x, bins=100)
-    tau, mu, sigma = 0.7, 0.1, 0.1
-    tau, mu, sigma = em(x, tau, mu, sigma)
-    print (tau, mu, sigma)
+    plt.hist(x, bins=1000)
+    tau, mu1, sigma1, mu2, sigma2 = 0.7, 0.1, 0.1, 0.3, 0.2
+    tau, mu1, sigma1, mu2, sigma2= em_double_gauss(x,  tau, mu1, sigma1, mu2, sigma2)
+    print (tau, mu1, sigma1, mu2, sigma2)
     
 if __name__ == '__main__':
     main()
