@@ -1,0 +1,260 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats, optimize
+
+#первое задание, все ок
+def data_generation():
+    tau = 0.8
+    mu1 = 0.5
+    sigma1 = 0.2
+    mu2 = 0.8
+    sigma2= 0.6
+    n=10000
+    
+    x_n1 = stats.norm.rvs(loc=mu1, scale=sigma1, size=int(tau*n))
+    x_n2 = stats.norm.rvs(loc=mu2, scale=sigma2, size=int((1-tau)*n))
+    x = np.concatenate((x_n1, x_n2))
+    return x
+
+def minimum_opt(x, tau, mu1, sigma1, mu2, sigma2): 
+    params = [tau, mu1, sigma1, mu2, sigma2]
+    def double_gauss(params1):
+        tau, mu1, sigma1, mu2, sigma2 = params1
+        p1 = stats.norm.pdf(x, loc = mu1, scale = sigma1) 
+        p2 = stats.norm.pdf(x, loc = mu2, scale = sigma2) 
+        return -np.sum(np.log(tau*p1 + (1-tau)*p2))
+    result = optimize.minimize(double_gauss, x0 = params, tol = 1e-3)
+    return result
+
+def main():
+    x = data_generation()
+    plt.hist(x, bins=1000)
+    tau, mu1, sigma1, mu2, sigma2 = 0.85, 0.55, 0.15, 0.82, 0.61
+    
+    result = minimum_opt(x, tau, mu1, sigma1, mu2, sigma2)
+    print(result)
+   
+if __name__ == '__main__':
+    main()
+
+#второе задание, все ок
+def data_generation():
+    tau = 0.5
+    mu1 = 0.1
+    sigma1 = 0.2
+    mu2 = 0.8
+    sigma2 = 0.6
+    n = 10000
+    
+    x_n1 = stats.norm.rvs(loc=mu1, scale=sigma1, size=int(tau*n))
+    x_n2 = stats.norm.rvs(loc=mu2, scale=sigma2, size=int((1-tau)*n))
+    x = np.concatenate((x_n1, x_n2))
+    return x
+
+def t_ij(x, tau, mu1, sigma1, mu2, sigma2):
+    """T_ij(x, theta)"""
+    p_in1 = stats.norm.pdf(x, loc = mu1, scale = sigma1)
+    p_in2 = stats.norm.pdf(x, loc = mu2, scale = sigma2)
+    p = tau * p_in1 + (1-tau) * p_in2
+    t_in1 = tau * p_in1 / p
+    t_in2 = (1-tau) * p_in2 / p
+    return t_in1, t_in2
+
+def update_theta(x, tau, mu1, sigma1, mu2, sigma2):
+    """Iterate theta"""
+    t_n1, t_n2 = t_ij(x, tau, mu1, sigma1, mu2, sigma2)
+    tau = np.sum(t_n1) / x.size
+    mu1 = np.sum(t_n1 * x) /  np.sum(t_n1)
+    mu2 = np.sum(t_n2 * x) /  np.sum(t_n2)
+    sigma1 = np.sqrt(np.sum(t_n1 * (x - mu1)**2) /  np.sum(t_n1))
+    sigma2 = np.sqrt(np.sum(t_n2 * (x - mu2)**2) /  np.sum(t_n2))
+    return tau, mu1, sigma1, mu2, sigma2
+
+def em_double_gauss(x, tau, mu1, sigma1, mu2, sigma2, rtol=1e-3):
+    """tau, mu, sigma are initiial estimations, returns theta"""
+    new = (tau, mu1, sigma1, mu2, sigma2)
+    rtol = 1e-3
+    while True:
+        old = new
+        new = update_theta(x, *old)
+        if np.allclose(new, old, rtol = rtol, atol = 0):
+            break
+    return new
+
+def main():
+    x = data_generation()
+    plt.hist(x, bins=1000)
+    tau, mu1, sigma1, mu2, sigma2 = 0.7, 0.1, 0.1, 0.3, 0.2
+    tau, mu1, sigma1, mu2, sigma2= em_double_gauss(x,  tau, mu1, sigma1, mu2, sigma2)
+    print (tau, mu1, sigma1, mu2, sigma2)
+    
+if __name__ == '__main__':
+    main()
+
+#это третье задание, первый пункт
+uniform_dens1 = 1/(1.5**2)
+def data_generation():
+
+    tau1 = 0.5
+    tau2=0.05
+    mu1=0.1
+    mu2=0.8
+    sigma1 = 0.02
+    sigma2 = 0.06
+    n = 1000
+    sigma11 = sigma1*np.eye(2)
+    sigma22 = sigma2*np.eye(2)
+    mean1 = np.array([mu1, mu1])
+    mean2 = np.array([mu2, mu2])
+    x_n1 = stats.multivariate_normal.rvs(mean = mean1, cov = sigma11, size=(int(tau1*n*n)))
+    x_n2 = stats.multivariate_normal.rvs(mean = mean2, cov = sigma22, size=(int(tau2*n*n)))
+    x_u = np.random.uniform(low=0, high=1.5, size=(int((1-tau1-tau2)*n*n),2))
+    x = np.concatenate((x_n1,x_n2,x_u))
+    return x
+
+def t_ij(x, uniform_dens, tau1, tau2, mu1, mu2, sigma1, sigma2):
+    """T_ij(x, theta)"""
+    mu1 = np.asarray(mu1)
+    mu2 = np.asarray(mu2)
+    sigma11 = sigma1*np.eye(2)
+    sigma22 = sigma2*np.eye(2)
+    p_in1 = stats.multivariate_normal.pdf(x, mean = mu1, cov =(sigma11))
+    p_in2 = stats.multivariate_normal.pdf(x, mean = mu2, cov = (sigma22))
+    p_un = np.zeros_like(p_in1) + uniform_dens
+    p = tau1 * p_in1 + tau2 * p_in2 + (1-tau1-tau2) * p_un
+    t_in1 = tau1 * p_in1 / p
+    t_in2 = tau2 * p_in2 / p
+    t_un = (1 - tau1 - tau2) * p_un / p 
+    return t_in1, t_in2, t_un
+
+def update_theta(x, uniform_dens, tau1, tau2, mu1, mu2, sigma1, sigma2):
+    """Iterate theta""" 
+    mu1 = np.asarray(mu1)
+    mu2 = np.asarray(mu2)
+    t_n1, t_n2, t_u = t_ij(x, uniform_dens, tau1, tau2, mu1, mu2, sigma1, sigma2)
+    tau1 = np.sum(t_n1) / (np.sum(t_n1)+np.sum(t_u)+np.sum(t_n2))
+    tau2 = np.sum(t_n2) / (np.sum(t_n1)+np.sum(t_u)+np.sum(t_n2))
+    sigma1 = np.sum(t_n1 * (x[:,0] - mu1[0])**2) /  np.sum(t_n1)
+    sigma2 = np.sum(t_n2 * (x[:,1] - mu2[1])**2) /  np.sum(t_n2)
+    mu1[0] = np.sum(t_n1 * x[:,0]) /  np.sum(t_n1)
+    mu1[1] = np.sum(t_n1 * x[:,1]) /  np.sum(t_n1)
+    mu2[0] = np.sum(t_n2 * x[:,0]) /  np.sum(t_n2)
+    mu2[1] = np.sum(t_n2 * x[:,1]) /  np.sum(t_n2)
+    return tau1, tau2, mu1, mu2, sigma1, sigma2
+
+def em(x, un, tau1, tau2, mu1,  mu2, sigma1, sigma2, rtol=1e-3):
+    """tau, mu, sigma are initial astimations, returns theta"""
+    new = ( tau1, tau2, mu1, mu2, sigma1, sigma2)
+    while True:
+        old = new
+        new = update_theta(x, un, *old)
+        if (np.allclose(new[0], old[0], rtol = rtol, atol = 0)) and  (np.allclose(new[1], old[1], rtol = rtol, atol = 0)) and (np.allclose(new[2][0], old[2][0], rtol = rtol, atol = 0)) and (np.allclose(new[2][1], old[2][1], rtol = rtol, atol = 0)) and (np.allclose(new[3][0], old[3][0], rtol = rtol, atol = 0)) and (np.allclose(new[3][1], old[3][1], rtol = rtol, atol = 0)) and (np.allclose(new[4], old[4], rtol = rtol, atol = 0)) and (np.allclose(new[5], old[5], rtol = rtol, atol = 0)):
+            break
+    return new
+
+result = em(data_generation(), uniform_dens1, 0.3, 0.2,(0.02, 0.13), (0.3, 0.12), 0.1, 0.5)
+print(result)
+#это третье задание, второй пункт
+import numpy as np
+import matplotlib.pyplot as plt
+import astropy.units as u
+from scipy import stats 
+from astropy.coordinates import SkyCoord 
+from astroquery.vizier import Vizier
+import json
+
+center_coord = SkyCoord('02h21m00s +57d07m42s')
+vizier = Vizier(
+    column_filters={'Bmag': '<13'},  # число больше — звёзд больше
+    row_limit=10000
+)
+stars = vizier.query_region(
+    center_coord,
+    width=1.5 * u.deg,
+    height=1.5 * u.deg,
+    catalog='USNO-A2.0',
+)[0]
+print(stars)
+ra = stars['RAJ2000']._data  # прямое восхождение, аналог долготы
+dec = stars['DEJ2000']._data  # склонение, аналог широты
+x1 = (ra - ra.mean()) * np.cos(dec / 180 * np.pi)
+x2 = dec
+x = np.vstack(((x1+ra.mean()).T, x2)).T
+print(x)
+plt.plot(*x.T, '*')
+
+uniform_dens1 = 1/(1.5**2)
+
+def t_ij(x, uniform_dens, tau1, tau2, mu1, mu2, sigma1, sigma2):
+    """T_ij(x, theta)"""
+    mu1 = np.asarray(mu1)
+    mu2 = np.asarray(mu2)
+    sigma11 = sigma1*np.eye(2)
+    sigma22 = sigma2*np.eye(2)
+    p_in1 = stats.multivariate_normal.pdf(x, mean = mu1, cov =(sigma11))
+    p_in2 = stats.multivariate_normal.pdf(x, mean = mu2, cov = (sigma22))
+    p_un = np.zeros_like(p_in1) + uniform_dens
+    p = tau1 * p_in1 + tau2 * p_in2 + (1-tau1-tau2) * p_un
+    t_in1 = tau1 * p_in1 / p
+    t_in2 = tau2 * p_in2 / p
+    t_un = (1 - tau1 - tau2) * p_un / p 
+    return t_in1, t_in2, t_un
+
+def update_theta(x, uniform_dens, tau1, tau2, mu1, mu2, sigma1, sigma2):
+    """Iterate theta""" 
+    mu1 = np.asarray(mu1)
+    mu2 = np.asarray(mu2)
+    t_n1, t_n2, t_u = t_ij(x, uniform_dens, tau1, tau2, mu1, mu2, sigma1, sigma2)
+    tau1 = np.sum(t_n1) / (np.sum(t_n1)+np.sum(t_u)+np.sum(t_n2))
+    tau2 = np.sum(t_n2) / (np.sum(t_n1)+np.sum(t_u)+np.sum(t_n2))
+    sigma1 = np.sum(t_n1 * (x[:,0] - mu1[0])**2) /  np.sum(t_n1)
+    sigma2 = np.sum(t_n2 * (x[:,1] - mu2[1])**2) /  np.sum(t_n2)
+    mu1[0] = np.sum(t_n1 * x[:,0]) /  np.sum(t_n1)
+    mu1[1] = np.sum(t_n1 * x[:,1]) /  np.sum(t_n1)
+    mu2[0] = np.sum(t_n2 * x[:,0]) /  np.sum(t_n2)
+    mu2[1] = np.sum(t_n2 * x[:,1]) /  np.sum(t_n2)
+    return tau1, tau2, mu1, mu2, sigma1, sigma2
+
+def em(x, uniform_dens, tau1, tau2, mu1,  mu2, sigma1, sigma2, rtol=1e-3):
+    """tau, mu, sigma are initial estimations, returns theta"""
+    new = (tau1, tau2, mu1, mu2, sigma1, sigma2)
+    while True:
+        old = new
+        new = update_theta(x, uniform_dens, *old)
+        if (np.allclose(new[0], old[0], rtol = rtol, atol = 0)) and  (np.allclose(new[1], old[1], rtol = rtol, atol = 0)) and (np.allclose(new[2][0], old[2][0], rtol = rtol, atol = 0)) and (np.allclose(new[2][1], old[2][1], rtol = rtol, atol = 0)) and (np.allclose(new[3][0], old[3][0], rtol = rtol, atol = 0)) and (np.allclose(new[3][1], old[3][1], rtol = rtol, atol = 0)) and (np.allclose(new[4], old[4], rtol = rtol, atol = 0)) and (np.allclose(new[5], old[5], rtol = rtol, atol = 0)):
+            break
+    return new
+
+
+
+result = em(x, uniform_dens1, 0.5, 0.3,(36.0, 57.0), (36.0, 57.0), 0.1, 0.5)
+print(result)
+size_rat = float(result[0]/result[1])
+
+plt.plot(result[2][0], result[2][1], '-o', color = 'black')
+plt.plot(result[3][0], result[3][1], '-o', color = 'black')
+
+plt.savefig('per.png', format = 'png', dpi = 100)
+
+d = {
+  "size_ratio": 1.2,
+  "clusters": [
+    {
+      "center": {"ra": 35.35, "dec": 57.07},
+      "sigma": 0.2,
+      "tau": 0.25
+    },
+    {
+      "center": {"ra": 36.36, "dec": 57.57},
+      "sigma": 0.1,
+      "tau": 0.3
+    }
+  ]
+}
+with open('per.json', 'w') as f:
+    json.dump(d, f)
+with open('per.json') as f:
+    print(f.read())
+
+
+
