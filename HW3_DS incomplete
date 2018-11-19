@@ -120,7 +120,7 @@ ra = stars['RAJ2000']._data  # прямое восхождение, аналог
 dec = stars['DEJ2000']._data  # склонение, аналог широты
 x1 = (ra - ra.mean()) * np.cos(dec / 180 * np.pi)
 x2 = dec
-x = np.vstack((x1.T, x2)).T
+x = np.vstack(((x1+ra.mean()).T, x2)).T
 print(x)
 plt.plot(*x.T, '*')
 
