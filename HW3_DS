@@ -236,21 +236,24 @@ plt.plot(result[3][0], result[3][1], '-o', color = 'black')
 
 plt.savefig('per.png', format = 'png', dpi = 100)
 
+size_rat = float(result[0]/result[1])
+
 d = {
-  "size_ratio": 1.2,
+  "size_ratio": size_rat,
   "clusters": [
     {
-      "center": {"ra": 35.35, "dec": 57.07},
-      "sigma": 0.2,
-      "tau": 0.25
+      "center": {"ra": result[2][0], "dec": result[2][1]},
+      "sigma": result[4],
+      "tau": result[0]
     },
     {
-      "center": {"ra": 36.36, "dec": 57.57},
-      "sigma": 0.1,
-      "tau": 0.3
+      "center": {"ra": result[3][0], "dec": result[3][1]},
+      "sigma": result[5],
+      "tau": result[1]
     }
   ]
 }
+
 with open('per.json', 'w') as f:
     json.dump(d, f)
 with open('per.json') as f:
