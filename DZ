@@ -1,0 +1,22 @@
+import csv 
+import numpy as np 
+
+import matplotlib.pyplot as plt
+filename = 'scope_0_1.csv' 
+s = np.loadtxt(filename, skiprows=2, delimiter=',') 
+
+plt.plot(s[:,0], s[:,1])
+
+k = s[::20]
+
+plt.figure()
+
+plt.plot(k[:,0], k[:,1], color = 'red')
+
+furier_data = np.fft.fft(k)
+
+print(furier_data)
+
+freq = np.fft.fftfreq(len(furier_data))
+
+plt.figure
