@@ -1,0 +1,32 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import json
+
+with open('Ширалиева.dat') as f:
+    lines = f.readlines()
+    values = [((float(x)/2 + 1)) for x in lines ]
+
+code = np.array([+1, +1, +1, -1, -1, -1, +1, -1, -1, +1, -1], dtype = np.int8)
+code = np.repeat(code, 5)
+
+conv = np.convolve(values, code[::-1], mode = 'same')
+plt.plot(conv)
+
+x_min, x_max = -25, 15
+bits = []
+for i in range(1,conv.size-1):
+        if conv[i]<=x_min and conv[i-1]>conv[i] and conv[i+1]>conv[i]:
+            bits.append(0)
+        if conv[i]>=x_max  and conv[i-1]<conv[i] and conv[i+1]<conv[i]:
+            bits.append(1)
+
+bits1 = np.packbits(np.array(bits, dtype=int))
+bits2 = bits1.tobytes()
+bits3 = bits2.decode('ascii')
+
+d = {"message": bits3}
+
+with open('per.json', 'w') as f:
+    json.dump(d, f)
+with open('per.json') as f:
+    print(f.read())
