@@ -1,3 +1,4 @@
+#первое задание
 import numpy as np
 import matplotlib.pyplot as plt
 import json
@@ -29,4 +30,39 @@ d = {"message": bits3}
 with open('per.json', 'w') as f:
     json.dump(d, f)
 with open('per.json') as f:
+    print(f.read())
+#второе задание
+import numpy as np
+import matplotlib.pyplot as plt
+import json
+
+values = np.fromfile('pulsar.dat')
+
+f = np.fft.fft(values)
+data = f.copy()
+f[0] = 0
+
+for i in range (len(f)):
+        if abs(f[i]) < 0.5e+24:
+            f[i] = 0
+f[:3000] = 0
+f[-3000:] = 0             
+
+reverse_furier = np.fft.ifft(f)
+plt.plot(reverse_furier[:300])
+plt.savefig('pulsar.png', format = 'png', dpi = 100)
+
+f_max = max(reverse_furier[:300])
+
+index = []
+for i in range(len(reverse_furier[:300])):
+    if reverse_furier[:300][i].real >= 1.5e+19:
+          index.append(i)
+period = index[1] - index[0]
+
+d = {"period": period}
+
+with open('pulsar.json', 'w') as f:
+    json.dump(d, f)
+with open('pulsar.json') as f:
     print(f.read())
