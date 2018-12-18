@@ -1,0 +1,22 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn import model_selection
+
+table = pd.read_csv('sdss_redshift.csv')
+x = np.stack((table.u - table.g,table.g - table.r,table.r-table.i,table.i-table.z), axis=1)
+y= table.redshift
+x_train, x_val, y_train, y_val = model_selection.train_test_split(x,y,random_state=8)
+print(y_train.shape, y_val.shape)
+
+rfr = RandomForestRegressor(n_estimators=10, random_state=8)
+a = rfr.fit(x_train, y_train)
+print(a)
+plt.scatter(y_train, rfr.predict(x_train), marker = 'x', s=1)
+plt.plot(plt.xlim(), plt.xlim(), 'k')
+plt.scatter(y_val, rfr.predict(x_val), marker = 'v', s=1)
+print('Initial data:', np.std(y))
+print('Train data:', np.std(y_train - rfr.predict(x_train)))
+print('Validation data:', np.std(y_val - rfr.predict(x_val)))
+table.head()
