@@ -1,0 +1,157 @@
+#первая часть 
+import numpy as np
+from scipy.optimize import minimize_scalar
+from collections import namedtuple
+import matplotlib.pyplot as plt
+
+Node = namedtuple('Node', ('feature', 'value', 'impurity', 'left', 'right'))
+Leaf = namedtuple('Leaf', ('value', 'x','y'))
+
+def criteria(y):
+    return np.std(y)**2
+
+def impurity(y_left, y_right):
+    size = y_left.size + y_right.size
+    h = ((y_left.size * criteria(y_left) + y_right.size * criteria(y_right))/size)
+    return h
+
+def partition(x,y,feature,value):
+    i_right = x[:, feature] >= value
+    i_left = np.logical_not(i_right)
+    return (x[i_left], y[i_left]), (x[i_right], y[i_right])
+
+def f(value, feature, x, y):
+    (_, y_left), (_, y_right) = partition(x,y,feature,value)
+    return impurity(y_left, y_right)
+
+def find_best_split(x,y):
+
+    best_feature, best_value, best_impurity = 0, x[0,0], np.inf
+    for feature in range(x.shape[1]):
+        x_i_sorted = np.sort(x[:, feature])
+        result = minimize_scalar(f, args=(feature, x, y), method = 'Bounded', bounds = (x_i_sorted[1], x_i_sorted[-1]))
+        assert result.success
+        value = result.x
+        impurity = result.fun
+        if impurity < best_impurity:
+            best_feature, best_value, best_impurity = feature, value, impurity
+    return best_feature, best_value, best_impurity
+
+def build_tree(x,y, depth=1, max_depth=np.inf):
+    if depth >= max_depth or criteria(y)<1e-6:
+        return Leaf(np.mean(y), x, y)
+    feature, value, impurity = find_best_split(x,y)
+    (x_left, y_left), (x_right, y_right) = partition(x,y,feature, value)
+    
+    left = build_tree(x_left, y_left, depth+1, max_depth)
+    right = build_tree(x_right, y_right, depth+1, max_depth)
+    root = Node(feature, value, impurity, left, right)
+    return root
+
+def predict(tree, x):
+    y = np.empty(x.shape[0])
+    for i, row in enumerate(x):
+        node = tree
+        while isinstance(node, Node):
+            if row[node.feature] >= node.value:
+                node = node.right
+            else:
+                node= node.left
+        y[i] = node.value
+    return y
+
+def random_forest(x, y, numb, depth):
+    forest = np.empty(numb, dtype=object)
+    for i in range(numb):        
+        split = np.random.random_integers((x.shape[0]-1), size=((x.shape[0])//numb))
+        x_split = x[split, :]
+        y_split = y[split]
+        forest[i] = build_tree(x_split, y_split, max_depth=depth)
+    return forest
+
+def forest_predict(forest, x):
+    predicts = np.empty(forest.size, dtype=object)
+#    predicts = np.asarray([tree.predict(forest[i], x) for i in range(forest.size)])
+    for i in range(forest.size):
+        predicts[i] = predict(forest[i], x) 
+    mean = np.mean(predicts)
+    return mean
+#вторая часть
+import numpy as np
+import tree1
+import matplotlib.pyplot as plt
+
+def random_forest(x, y, numb, depth):
+    forest = np.empty(numb, dtype=object)
+    
+    for i in range(numb):        
+        split = np.random.random_integers((x.shape[0]-1), size=((x.shape[0])//numb))
+        x_split = x[split, :]
+        y_split = y[split]
+        forest[i] = tree1.build_tree(x_split, y_split, max_depth=depth)
+    return forest
+
+def forest_predict(forest, x):
+    pred = np.empty(forest.size, dtype=object)
+    for i in range(forest.size):
+        pred[i] = tree1.predict(forest[i], x) 
+    mean = np.mean(pred)
+    return mean
+
+def main():
+    #TEST
+    n = 1000
+    x = np.random.normal(0, 1, size=(n, 2))
+    y_true = 2 * x[:, 0] + 1
+    y = y_true + np.random.normal(0, 0.5, n)
+    x_test = np.random.normal(0, 1, size=(n, 2))
+    y_test = 2 * x_test[:, 0] + 1
+    dp = 5
+    std = []
+    for d in range(1, dp):
+        forest = random_forest(x, y, 100, d)
+        y_pred = forest_predict(forest, x_test)
+        std.append(1/np.std(y_test - y_pred))
+        print(np.std(y_test - y_pred))
+    depth = np.arange(1, dp, 1)
+    plt.plot(depth, std, 'o-')
+    plt.plot(y_test, y_pred, 'x')
+    print(np.std(y_test - y_pred))
+    plt.plot(plt.xlim(), plt.xlim(), 'k', lw=0.5)
+    plt.show()
+if __name__ == '__main__':
+    main()
+#третья часть
+import pandas as pd
+import random_forest1 as forest
+import matplotlib.pyplot as plt
+import numpy as np
+import json
+
+
+data = pd.read_csv("sdss_redshift.csv")
+    
+x = np.stack((data.u-data.g, data.g - data.r, data.r-data.i, data.i -data.u), axis=1)
+y= data.redshift
+_forest = forest.random_forest(x, y, 10, 5)
+y_pred = forest.forest_predict(_forest, x)
+plt.scatter(y_pred,y,marker ='*', s=1)
+plt.plot(plt.xlim(), plt.xlim(), 'r', lw=0.5)
+plt.savefig("redshift.png")
+print(np.std(y-y_pred))
+    
+d = {"std": np.std(y-y_pred)}
+    
+with open('redshift.json', 'w', encoding='utf8') as jsonFile:
+    json.dump(d, jsonFile)
+
+with open('redshift.json') as f2:
+        print(f2.read())    
+    
+data_upd = pd.read_csv("sdss.csv")
+x1 = np.stack((data_upd.u-data_upd.g, data_upd.g - data_upd.r, data_upd.r-data_upd.i, data_upd.i -data_upd.u), axis=1)
+
+redshift = forest.forest_predict(_forest, x1)
+    
+data_upd = data_upd.assign(redshift=pd.Series(redshift).values)
+print(data_upd)
